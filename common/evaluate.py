@@ -18,8 +18,8 @@ def D_lambda(img_fake, img_lm, block_size=32, p=1):
     img_fake, generated HRMS
     img_lm, LRMS"""
     assert img_fake.ndim == img_lm.ndim == 3, 'Images must be 3D!'
-    img_fake = img_fake.permute(1, 2, 0)
-    img_lm = img_lm.permute(1, 2, 0)
+    img_fake = img_fake.permute(1, 2, 0).detach().numpy()
+    img_lm = img_lm.permute(1, 2, 0).detach().numpy()
     H_f, W_f, C_f = img_fake.shape
     H_r, W_r, C_r = img_lm.shape
     assert C_f == C_r, 'Fake and lm should have the same number of bands!'
@@ -49,9 +49,9 @@ def D_s(img_fake, img_lm, pan, satellite='QuickBird', scale=4, block_size=32, q=
     pan, HRPan"""
     # fake and lm
     assert img_fake.ndim == img_lm.ndim == 3, 'MS images must be 3D!'
-    img_fake = img_fake.permute(1, 2, 0)
-    img_lm = img_lm.permute(1, 2, 0)
-    pan = pan.permute(1, 2, 0)
+    img_fake = img_fake.permute(1, 2, 0).detach().numpy()
+    img_lm = img_lm.permute(1, 2, 0).detach().numpy()
+    pan = pan.permute(1, 2, 0).detach().numpy()
     H_f, W_f, C_f = img_fake.shape
     H_r, W_r, C_r = img_lm.shape
     assert H_f // H_r == W_f // W_r == scale, 'Spatial resolution should be compatible with scale'
@@ -85,7 +85,7 @@ def D_s(img_fake, img_lm, pan, satellite='QuickBird', scale=4, block_size=32, q=
     return D_s_index ** (1/q)
 
 
-def qnr(img_fake, img_lm, pan, satellite='QuickBird', scale=4, block_size=32, p=1, q=1, alpha=1, beta=1):
+def Qnr(img_fake, img_lm, pan, satellite='QuickBird', scale=4, block_size=32, p=1, q=1, alpha=1, beta=1):
     """QNR - No reference IQA"""
     D_lambda_idx = D_lambda(img_fake, img_lm, block_size, p)
     D_s_idx = D_s(img_fake, img_lm, pan, satellite, scale, block_size, q)
@@ -96,8 +96,8 @@ def qnr(img_fake, img_lm, pan, satellite='QuickBird', scale=4, block_size=32, p=
 def _qindex(img1, img2, block_size=8):
     """Q-index for 2D (one-band) image, shape (H, W); uint or float [0, 1]"""
     assert block_size > 1, 'block_size shold be greater than 1!'
-    img1_ = np.array(img1.cpu())
-    img2_ = np.array(img2.cpu())
+    img1_ = np.array(img1)
+    img2_ = np.array(img2)
     window = np.ones((block_size, block_size)) / (block_size ** 2)
     # window_size = block_size**2
     # filter, valid
@@ -341,7 +341,7 @@ def analysis_accu(img_base, img_out, ratio, flag_cut_bounds=True, dim_cut=21, ch
         img_base = img_base[dim_cut - 1:-dim_cut, dim_cut - 1:-dim_cut, :]  #:
         img_out = img_out[dim_cut - 1:-dim_cut, dim_cut - 1:-dim_cut, :]  #:
 
-    q2n_index = qindex(img_base, img_out)
+    q2n_index = qindex(img_base.cpu(), img_out.cpu())
 
     h = img_out.shape[0]
     w = img_out.shape[1]
@@ -385,11 +385,7 @@ def analysis_accu(img_base, img_out, ratio, flag_cut_bounds=True, dim_cut=21, ch
     PSNR = 10 * torch.log10(math.pow(1.0, 2) / torch.mean((img_out-img_base)**2, [0, 1]))
 
     # SSIM
-    # img_base = img_base.permute(2, 0, 1)
-    # img_out = img_out.permute(2, 0, 1)
-    # img_base = img_base.unsqueeze(0)
-    # img_out = img_out.unsqueeze(0)
-    # SSIM = _ssim(img_base.permute(2, 0, 1).unsqueeze(0), img_out.permute(2, 0, 1).unsqueeze(0))
+    SSIM = _ssim(img_base.permute(2, 0, 1).unsqueeze(0), img_out.permute(2, 0, 1).unsqueeze(0))
 
     # index = torch.zeros((5, chanel + 1))
     # index[0, 1:chanel + 1] = CC
@@ -402,7 +398,7 @@ def analysis_accu(img_base, img_out, ratio, flag_cut_bounds=True, dim_cut=21, ch
     # index[4, 0] = ERGAS
 
     PSNR = torch.mean(PSNR)
-    # SSIM = torch.mean(SSIM)
+    SSIM = torch.mean(SSIM)
     q2n_index = np.mean(q2n_index)
 
     # 计算CC
@@ -413,7 +409,7 @@ def analysis_accu(img_base, img_out, ratio, flag_cut_bounds=True, dim_cut=21, ch
     CC = C1 / ((C2 * C3) ** 0.5)
     CC = torch.mean(CC)
 
-    return {'SAM': SAM, 'ERGAS': ERGAS, 'PSNR': PSNR, 'CC': CC, "q2n_index": q2n_index}
+    return {'SAM': SAM, 'ERGAS': ERGAS, 'PSNR': PSNR, 'CC': CC, "q2n_index": q2n_index, "SSIM":SSIM}
 
 
 def _ssim(img1, img2):

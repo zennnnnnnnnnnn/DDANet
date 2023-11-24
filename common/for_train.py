@@ -33,18 +33,27 @@ class FuseDataset(Dataset):
         return self.pan[index], self.ms[index], self.lms[index], self.gt[index]
 
 
-def get_data(path, is_cuda=False):
+def get_data(path, is_cuda=False, data_mode="reduce"):
     if not os.path.exists(path):
         raise FileNotFoundError(f"The path {path} does not exist")
 
     elif path.endswith('.h5'):
-        print("loading h5 data from: ", path)
-        data = h5py.File(path, 'r')
+        if data_mode == "reduce":   # 256
+            print("loading h5 reduced data from: ", path)
+            data = h5py.File(path, 'r')
 
-        pan = torch.from_numpy(data['pan'][...] / 2047.0).float()
-        ms = torch.from_numpy(data['ms'][...] / 2047.0).float()
-        lms = torch.from_numpy(data['lms'][...] / 2047.0).float()
-        gt = torch.from_numpy(data['gt'][...] / 2047.0).float()
+            pan = torch.from_numpy(data['pan'][...] / 2047.0).float()
+            ms = torch.from_numpy(data['ms'][...] / 2047.0).float()
+            lms = torch.from_numpy(data['lms'][...] / 2047.0).float()
+            gt = torch.from_numpy(data['gt'][...] / 2047.0).float()
+        elif data_mode == "full":   # 512
+            print("loading h5 full data from: ", path)
+            data = h5py.File(path, 'r')
+
+            pan = torch.from_numpy(data['pan'][...] / 2047.0).float()
+            ms = torch.from_numpy(data['ms'][...] / 2047.0).float()
+            lms = torch.from_numpy(data['lms'][...] / 2047.0).float()
+            gt = None
 
     elif path.endswith('.mat'):
         print("loading mat data from: ", path)

@@ -1,10 +1,7 @@
-# from models.Model_1 import Model_1
-# from models.PanSDLNet import Model_1
-from models.DDANet import PanNet
 
 start_epoch = 0
 end_epoch = 200
-batch_size = 16
+batch_size = 32
 
 # 笔记本
 train_data_path = 'D:/MyData/pythonData/big_directory/train_wv3.h5'
@@ -12,11 +9,14 @@ test_data_path = 'D:/MyData/pythonData/big_directory/test_wv3_multiExm1.h5'
 # AutoDL
 # train_data_path = '/root/autodl-tmp/Data/train_wv3.h5'
 # test_data_path = '/root/autodl-tmp/Data/test_wv3_multiExm1.h5'
+# 6
+# train_data_path = '/Data2/Datasets/PanCollection/training_data/train_wv3_9714.h5'
+# test_data_path = '/Data2/Datasets/PanCollection/test_data/test_wv3_multiExm1.h5'
 
 testing = False
 
 lr = 0.001
-lr_list = {20: 1e-4, 80: 1e-5}
+lr_list = {30: 3e-4, 40: 1e-4, 160: 3e-5}
 ckpt = 20
 gpu_device = "0"
 
@@ -52,9 +52,7 @@ tem = 70
 tem_kp = 0.01
 
 # ============= 3) Load Model + Loss + Optimizer + Learn_rate_update ==========#
-model = PanNet(mode="ch").cuda()
 criterion = nn.MSELoss().cuda()
-optimizer = optim.Adam(model.parameters(), lr=lr)
 
 pan_all, ms_all, lms_all, gt_all = get_data(train_data_path)
 pan_test, ms_test, lms_test, gt_test = get_data(test_data_path, is_cuda=True)
@@ -94,7 +92,7 @@ def train(model, optimizer, start_epoch=0, epochs=1500, weight_path="Weights_DDA
             gt = gt.cuda()
 
             optimizer.zero_grad()
-            out = model(ms, pan)
+            out = model(lms, pan)
             loss = criterion(out, gt)
             loss.backward()
             optimizer.step()
@@ -128,7 +126,7 @@ def train(model, optimizer, start_epoch=0, epochs=1500, weight_path="Weights_DDA
         with torch.no_grad():
             model.eval()
 
-            out = model(ms_test, pan_test)  # call model
+            out = model(lms_test, pan_test)  # call model
             metrics = []
             for i in range((pan_test.shape[0])):
                 m = analysis_accu(gt_test[i].permute(1, 2, 0), out[i].permute(1, 2, 0), ratio=4, flag_cut_bounds=True,
@@ -144,8 +142,13 @@ def train(model, optimizer, start_epoch=0, epochs=1500, weight_path="Weights_DDA
 
 
 if __name__ == "__main__":
-    model = PanNet(mode="ch+sp").cuda()
-    optimizer = optim.Adam(model.parameters(), lr=0.00001)
-    train(model, optimizer, 200, 500, "Weights_DDA_ch+sp")
+
+    from models.LACNet import LACNET
+
+    model = LACNET().cuda()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    train(model, optimizer, 0, 200, "Weights_LAC")
+
+
 
 

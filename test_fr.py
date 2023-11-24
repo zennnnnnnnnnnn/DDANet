@@ -1,66 +1,55 @@
-import scipy.io as sio
-import h5py
-import numpy as np
-import torch
-import torch.nn as nn
-
-# from models.PanSDLNet import PanNet
 from models.PanNet import PanNet
-# from models.DDANet import PanNet
 
-from UDL.pansharpening.common.evaluate import D_lambda, D_s, qnr
 
+from common.evaluate import *
+from common.for_train import *
+
+data_path = "D:/MyData/pythonData/big_directory/test_wv3_OrigScale_multiExm1.h5"
+# model_path = "Weights_DDA/540.pth"
+model_path = "E:/新建文件夹/CV/start!/PanHDNet_result/0-4——PanNet终极版之无限究极版/160.pth"
+# output_name = '100-DDANet.mat'
+output_name = None
+
+model = PanNet()
+
+import scipy.io as sio
+import torch
 
 SEED = 1
 torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 
-data_path = "D:/MyData/pythonData/big_directory/test_wv3_OrigScale_multiExm1.h5"
-# model_path = "Weights/200.pth"
-model_path = "E:/新建文件夹/CV/start!/PanHDNet_result/0-3——PanNet终极版/420.pth"
-output_name = '200-SDLNet.mat'
 
-data = h5py.File(data_path, 'r')
-print(data.keys())
+def test(model):
+    pan, ms, lms, gt = get_data(data_path, data_mode="full")
 
-PAN = data['pan']
-MS = data['ms']
+    load_result = model.load_state_dict(torch.load(model_path))
+    print("loading weight from ", data_path, " result:", load_result)
+    model.eval()
 
-pan = PAN[...]/2047.0     # [:64, :64, ...]
-pan = torch.from_numpy(pan).float()
+    import time
+    time1 = time.time()
+    output = model(ms, pan)
+    print(time.time() - time1)
 
-ms = MS[...]/2047.0      # [:64, :64, ...]
-ms = torch.from_numpy(ms).float()
+    metrics = []
+    for i in range((output.shape[0])):
+        d_lambda = D_lambda(output[i], ms[i])
+        d_s = D_s(output[i], ms[i], pan[i])
+        qnr = Qnr(output[i], ms[i], pan[i])
+        metrics.append([d_lambda, d_s, qnr])
+    mean_metrics = torch.tensor(metrics).mean(dim=0)
+    std_metrics = torch.tensor(metrics).std(dim=0)
 
-print(ms.shape)
-print(pan.shape)
+    print(mean_metrics)  # Dlamda Ds qnr
+    print(std_metrics)
 
-model = PanNet()
-a = model.load_state_dict(torch.load(model_path))
-print(a)
-model.eval()
+    if output_name:
+        sio.savemat("Weights/" + output_name, {'output': output.detach().numpy()})
 
-import time
-time1 = time.time()
-output = model(ms, pan)
-print(time.time() - time1)
 
-print(output.shape)
+if __name__ == "__main__":
+    test(model)
 
-metrics = []
-
-for i in range((output.shape[0])):
-    # m = D_lambda(output[i], ms[i])
-    # m = D_s(output[i], ms[i], pan[i])
-    m = qnr(output[i], ms[i], pan[i])
-    metrics.append(m)
-
-mean_metrics = torch.tensor(metrics).mean(dim=0)
-std_metrics = torch.tensor(metrics).std(dim=0)
-
-print(mean_metrics)  # Dlamda Ds qnr
-print(std_metrics)
-
-sio.savemat("Weights/" + output_name, {'output': output.detach().numpy()})
 
