@@ -1,4 +1,4 @@
-from models.MSDCNN import MSDCNN
+from models_DDA.PanNet_DDA import PanNet
 
 from common.evaluate import analysis_accu
 from common.for_train import *
@@ -9,7 +9,7 @@ model_path = "Weights_MSDCNN_DDA/180.pth"
 # output_name = '100-DDANet.mat'
 output_name = None
 
-model = MSDCNN().cuda()
+model = PanNet().cuda()
 
 import scipy.io as sio
 import torch
@@ -47,7 +47,8 @@ def test(model):
 
 
 if __name__ == "__main__":
-    test(model)
+    # ########### test result #############
+    # test(model)
 
     # ########### get params size #############
-    # summary(model, [(8, 256, 256), (1, 256, 256)])
+    summary(model, [(8, 64, 64), (1, 256, 256)])
