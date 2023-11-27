@@ -7,7 +7,6 @@ import torch.nn as nn
 import numpy as np
 import math
 import torch.nn.init as int
-from UDL.Basis.variance_sacling_initializer import variance_scaling_initializer
 from common.basic import *
 
 
@@ -28,33 +27,6 @@ class loss_with_l2_regularization(nn.Module):
 
         loss = criterion + sum(regularizations)
         return loss
-
-
-# -------------Initialization----------------------------------------
-def init_weights(*modules):
-    for module in modules:
-        for m in module.modules():
-            if isinstance(m, nn.Conv2d):  ## initialization for Conv2d
-                print("initial nn.Conv2d with var_scale_new: ", m)
-                # try:
-                #     import tensorflow as tf
-                #     tensor = tf.get_variable(shape=m.weight.shape, initializer=tf.variance_scaling_initializer(seed=1))
-                #     m.weight.data = tensor.eval()
-                # except:
-                #     print("try error, run variance_scaling_initializer")
-                # variance_scaling_initializer(m.weight)
-                variance_scaling_initializer(m.weight)  # method 1: initialization
-                # nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='relu')  # method 2: initialization
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0.0)
-            elif isinstance(m, nn.BatchNorm2d):  ## initialization for BN
-                nn.init.constant_(m.weight, 1.0)
-                nn.init.constant_(m.bias, 0.0)
-            elif isinstance(m, nn.Linear):  ## initialization for nn.Linear
-                # variance_scaling_initializer(m.weight)
-                nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0.0)
 
 
 class FusionNet(nn.Module):
@@ -81,9 +53,6 @@ class FusionNet(nn.Module):
             self.res3,
             self.res4
         )
-
-        # init_weights(self.backbone, self.conv1, self.conv3)   # state initialization, important!
-        # self.apply(init_weights)
 
     def forward(self, x, y):  # x= lms; y = pan
 

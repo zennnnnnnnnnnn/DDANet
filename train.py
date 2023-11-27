@@ -16,7 +16,7 @@ test_data_path = 'D:/MyData/pythonData/big_directory/test_wv3_multiExm1.h5'
 testing = False
 
 lr = 0.001
-lr_list = {30: 3e-4, 40: 1e-4, 160: 3e-5}
+lr_list = {100: 3e-4, 120: 1e-4}
 ckpt = 20
 gpu_device = "0"
 
@@ -48,7 +48,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = gpu_device
 
 # ============= 2) HYPER PARAMS(Pre-Defined) ==========#
 tem_control = True
-tem = 70
+tem = 65
 tem_kp = 0.01
 
 # ============= 3) Load Model + Loss + Optimizer + Learn_rate_update ==========#
@@ -143,11 +143,11 @@ def train(model, optimizer, start_epoch=0, epochs=1500, weight_path="Weights_DDA
 
 if __name__ == "__main__":
 
-    from models.LACNet import LACNET
+    from models.FusionNet import FusionNet
 
-    model = LACNET().cuda()
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    train(model, optimizer, 0, 200, "Weights_LAC")
+    model = FusionNet().cuda()
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    train(model, optimizer, 120, 300, "Weights_FusionNet")
 
 
 

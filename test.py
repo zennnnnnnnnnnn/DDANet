@@ -1,15 +1,15 @@
-from models_DDA.PanNet_DDA import PanNet
+from models_DDA.LACNet_DDA import LACNET
 
 from common.evaluate import analysis_accu
 from common.for_train import *
 
 data_path = "D:/MyData/pythonData/big_directory/test_wv3_multiExm1.h5"
-model_path = "Weights_MSDCNN_DDA/180.pth"
-# model_path = "E:/新建文件夹/CV/start!/PanHDNet_result/5-5——LACNet/200.pth"
+# model_path = "Weights_MSDCNN_DDA/180.pth"
+model_path = "E:/新建文件夹/CV/start!/PanHDNet_result/5-6——LACNet_DDA/600.pth"
 # output_name = '100-DDANet.mat'
 output_name = None
 
-model = PanNet().cuda()
+model = LACNET()
 
 import scipy.io as sio
 import torch
@@ -21,8 +21,10 @@ torch.cuda.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 
 
-def test(model):
-    pan, ms, lms, gt = get_data(data_path, is_cuda=True)
+def test(model, is_cuda=True):
+    pan, ms, lms, gt = get_data(data_path, is_cuda=is_cuda)
+    if is_cuda:
+        model = model.cuda()
 
     load_result = model.load_state_dict(torch.load(model_path))
     print("loading weight from ", data_path, " result:", load_result)
