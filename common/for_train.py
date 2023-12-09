@@ -60,19 +60,21 @@ def get_data(path, is_cuda=False, data_mode="reduce"):
         data = sio.loadmat(path)
 
         pan = data['I_PAN'] / 2047.0
-        pan = torch.from_numpy(pan.astype(float)).unsqueeze(2).permute(2, 0, 1).unsqueeze(0)
+        pan = torch.from_numpy(pan.astype(float)).unsqueeze(2).permute(2, 0, 1).unsqueeze(0).float()
         ms = data['I_MS_LR'] / 2047.0
-        ms = torch.from_numpy(ms.astype(float)).permute(2, 0, 1).unsqueeze(0)
+        ms = torch.from_numpy(ms.astype(float)).permute(2, 0, 1).unsqueeze(0).float()
         lms = data['I_MS'] / 2047.0
-        lms = torch.from_numpy(lms.astype(float)).permute(2, 0, 1).unsqueeze(0)
+        lms = torch.from_numpy(lms.astype(float)).permute(2, 0, 1).unsqueeze(0).float()
         gt = data['I_GT'] / 2047.0
-        gt = torch.from_numpy(gt.astype(float)).permute(2, 0, 1)
+        gt = torch.from_numpy(gt.astype(float)).permute(2, 0, 1).float()
 
     else:
         print("path endswith something wrong")
         raise ValueError(f"The file format of {path} is not correct. It should be a CSV file.")
 
     if is_cuda:
+        if data_mode == "full":
+            return pan.cuda(), ms.cuda(), lms.cuda(), gt
         return pan.cuda(), ms.cuda(), lms.cuda(), gt.cuda()
 
     return pan, ms, lms, gt

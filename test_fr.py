@@ -66,7 +66,8 @@ tensor([0.0317, 0.0678, 0.9030], dtype=torch.float64)
 tensor([0.0183, 0.0324, 0.0437], dtype=torch.float64)
 
 MSDCNN_DDA
-
+tensor([0.0327, 0.0667, 0.9031], dtype=torch.float64)
+tensor([0.0193, 0.0313, 0.0417], dtype=torch.float64)
 
 
 fusionnet
@@ -79,6 +80,32 @@ tensor([0.0203, 0.0274, 0.0401], dtype=torch.float64)
 
 
 LACNet
+
+
+\begin{table*}[t]
+\caption{Table: Quantitative results on 20 reduced-resolution and 20 full-resolution samples of WV3. (red: best)}
+\begin{center}
+\begin{tabular}{ccccccc}
+\toprule
+\multirow{2}{*}{\bf Method} & \multicolumn{5}{c}{\bf Reduced-Resolution} & \multirow{2}{*}{\bf Params}\\
+\cmidrule{2-6}
+& PSNR & Q8 & SAM & ERGAS & SCC \\
+\midrule
+\bf PanNet          & 37.381±2.643 & 0.901±0.092 & 3.624±0.695 & 2.641±0.605 & 0.973±0.023  & 0.60MB\\
+\bf PanNet+DDA      & \textcolor{red}{38.014}±2.541 & \textcolor{red}{0.908}±0.092 & \textcolor{red}{3.328}±0.622 & \textcolor{red}{2.440}±0.614 & \textcolor{red}{0.977}±0.020   & 0.61MB\\
+\bf MSDCNN          & 37.152±2.576 & 0.900±0.090 & 3.707±0.758 & 2.719±0.640 & 0.972±0.022   & 0.87MB\\
+\bf MSDCNN+DDA      & \textcolor{red}{37.371}±2.713 & \textcolor{red}{0.903}±0.090 & \textcolor{red}{3.580}±0.668 & \textcolor{red}{2.666}±0.677 & \textcolor{red}{0.973}±0.022   & 0.88MB\\
+\bf FusionNet       & 37.647±2.601 & 0.903±0.091 & 3.388±0.657 & 2.544±0.615 & 0.974±0.022  & 0.58MB\\
+\bf FusionNet+DDA   & \textcolor{red}{37.834}±2.564 & \textcolor{red}{0.906}±0.090 & \textcolor{red}{3.317}±0.643 & \textcolor{red}{2.480}±0.632 & \textcolor{red}{0.975}±0.022  & 0.60MB\\
+\bf LAGNet          & 38.584±2.519 & 0.916±0.087 & 3.129±0.642 & 2.297±0.593 & 0.980±0.017  & 0.58MB\\
+\bf LAGNet+DDA      & \textcolor{red}{38.666}±2.637 & \textcolor{red}{0.918}±0.086 & \textcolor{red}{3.085}±0.576 & \textcolor{red}{2.261}±0.565 & \textcolor{red}{0.980}±0.017  & 0.59MB\\
+\midrule
+\bf Ideal value     &0      &0      &+$\infty$  &1      &1      
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table*}
+
 
 """
 
